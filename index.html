@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全角转半角转换器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            resize: vertical;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #clearBtn {
+            background-color: #f44336;
+        }
+        #clearBtn:hover {
+            background-color: #da190b;
+        }
+        .copy-btn {
+            background-color: #2196F3;
+        }
+        .copy-btn:hover {
+            background-color: #1976D2;
+        }
+        /* 添加标签页样式 */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .tab.active {
+            background: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 硬件术语表样式 */
+        .terms-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        
+        .terms-table th, .terms-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .terms-table th {
+            background: #f5f5f5;
+        }
+
+        .category-header {
+            background: #e0e0e0;
+            font-weight: bold;
+        }
+
+        /* 模板编辑器样式 */
+        .template-select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .template-editor {
+            width: 100%;
+            height: 300px;
+            font-family: monospace;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        /* 按钮动画 */
+        .btn-ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-ripple:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, .5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        .btn-ripple:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 1;
+            }
+            20% {
+                transform: scale(25, 25);
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(40, 40);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" data-tab="converter">全角转换器</div>
+            <div class="tab" data-tab="terms">硬件术语表</div>
+            <div class="tab" data-tab="template">模板编辑器</div>
+        </div>
+
+        <!-- 全角转换器内容 -->
+        <div class="tab-content active" id="converter">
+            <h1>全角转半角转换器</h1>
+            <div>
+                <h3>输入文本（全角）：</h3>
+                <textarea id="input" placeholder="在此输入全角文本..."></textarea>
+                <div class="button-group">
+                    <button onclick="convert()">转换</button>
+                    <button id="clearBtn" onclick="clearText()">清空</button>
+                </div>
+                <h3>转换结果（半角）：</h3>
+                <textarea id="output" readonly></textarea>
+                <div class="button-group">
+                    <button class="copy-btn" onclick="copyToClipboard()">复制结果</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 硬件术语表内容 -->
+        <div class="tab-content" id="terms">
+            <h2>硬件术语对照表</h2>
+            
+            <!-- DT部件 -->
+            <div class="terms-section">
+                <h3>DT部件名称</h3>
+                <table class="terms-table">
+                    <tr><th>英文缩写</th><th>中文</th><th>日文</th></tr>
+                    <tr><td>CPU</td><td>处理器</td><td>プロセッサー</td></tr>
+                    <tr><td>PLN/PWA</td><td>主板</td><td>マザーボード</td></tr>
+                    <tr><td>PSU</td><td>电源</td><td>電源ユニット</td></tr>
+                    <tr><td>MEM</td><td>内存</td><td>メモリ</td></tr>
+                    <tr><td>HDD</td><td>硬盘</td><td>ハードディスク</td></tr>
+                    <tr><td>SSD</td><td>固态硬盘</td><td>SSD</td></tr>
+                    <tr><td>VideoCard</td><td>显卡</td><td>グラフィックスカード</td></tr>
+                    <tr><td>SPKR</td><td>扬声器/音箱</td><td>スピーカー</td></tr>
+                    <tr><td>CHAS_Parts</td><td>机箱/外壳</td><td>シャーシ</td></tr>
+                    <tr><td>OD</td><td>光驱</td><td>光学ドライブ</td></tr>
+                    <tr><td>CPU/FAN</td><td>散热器</td><td>CPUクーラー</td></tr>
+                    <tr><td>KBD</td><td>键盘</td><td>キーボード</td></tr>
+                    <tr><td>MSE</td><td>鼠标</td><td>マウス</td></tr>
+                </table>
+            </div>
+
+            <!-- NB部件 -->
+            <div class="terms-section">
+                <h3>NB部件名称</h3>
+                <table class="terms-table">
+                    <tr><th>英文缩写</th><th>中文</th><th>日文</th></tr>
+                    <tr><td>LCD</td><td>液晶面板</td><td>液晶パネル</td></tr>
+                    <tr><td>LCD_CBL</td><td>屏线</td><td>LCDケーブル</td></tr>
+                    <tr><td>LCD_BZL</td><td>屏幕挡板</td><td>液晶ベゼル</td></tr>
+                    <tr><td>TopCover</td><td>顶盖</td><td>トップカバー</td></tr>
+                    <tr><td>Inverter</td><td>高压板</td><td>インバーター</td></tr>
+                    <tr><td>KYBD_BZL</td><td>键盘挡板</td><td>キーボードベゼル</td></tr>
+                    <tr><td>Bottom</td><td>底壳</td><td>ボトムケース</td></tr>
+                    <tr><td>Battery</td><td>电池</td><td>バッテリー</td></tr>
+                    <tr><td>ADPT</td><td>AC适配器</td><td>ACアダプター</td></tr>
+                </table>
+            </div>
+
+            <!-- 其他部件 -->
+            <div class="terms-section">
+                <h3>其他部件名称</h3>
+                <table class="terms-table">
+                    <tr><th>英文</th><th>中文</th><th>日文</th></tr>
+                    <tr><td>Wireless</td><td>无线网卡</td><td>無線LANカード</td></tr>
+                    <tr><td>BlueTooth</td><td>蓝牙</td><td>ブルートゥース</td></tr>
+                    <tr><td>Power CBL</td><td>电源线</td><td>電源ケーブル</td></tr>
+                    <tr><td>Resource CD</td><td>资源光盘</td><td>リソースCD</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- 模板编辑器内容 -->
+        <div class="tab-content" id="template">
+            <h2>模板编辑器</h2>
+            <select class="template-select" id="templateSelect">
+                <option value="default">默认模板</option>
+                <option value="hdd_replace">硬盘更换模板</option>
+                <option value="memory_test">内存测试模板</option>
+                <option value="battery_replace">电池更换模板</option>
+            </select>
+            <textarea class="template-editor" id="templateEditor">■機種名: 
+■現象: 
+■CIDAR: 
+■切り分け: 他不具合なし
+
+I: 
+
+■RAID構成情報: 
+
+OS: 
+
+C:修理免責全て了承済 
+C:HDD交換/OSｲﾝｽﾄｰﾙ了承済み。 
+C:HDD交換/OSｲﾝｽﾄｰﾙ必要な際はRHOLD連絡必要 
+C:ﾛｸﾞｲﾝPW/HDD/BIOS_PSWD、BitLocker設定なし 
+C:OS再ｲﾝｽﾄｰﾙ時ﾕｰｻﾞｰ名：　　設定願います</textarea>
+            <div class="button-group">
+                <button class="btn-ripple" onclick="copyTemplate()">复制模板</button>
+                <button class="btn-ripple" onclick="clearTemplate()">清空</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function convert() {
+            const input = document.getElementById('input').value;
+            const output = document.getElementById('output');
+            
+            // 创建更完整的全角到半角映射表
+            const fullToHalfMap = {
+                // 数字
+                '０': '0', '１': '1', '２': '2', '３': '3', '４': '4',
+                '５': '5', '６': '6', '７': '7', '８': '8', '９': '9',
+                // 英文字母（大写）
+                'Ａ': 'A', 'Ｂ': 'B', 'Ｃ': 'C', 'Ｄ': 'D', 'Ｅ': 'E', 'Ｆ': 'F', 'Ｇ': 'G',
+                'Ｈ': 'H', 'Ｉ': 'I', 'Ｊ': 'J', 'Ｋ': 'K', 'Ｌ': 'L', 'Ｍ': 'M', 'Ｎ': 'N',
+                'Ｏ': 'O', 'Ｐ': 'P', 'Ｑ': 'Q', 'Ｒ': 'R', 'Ｓ': 'S', 'Ｔ': 'T', 'Ｕ': 'U',
+                'Ｖ': 'V', 'Ｗ': 'W', 'Ｘ': 'X', 'Ｙ': 'Y', 'Ｚ': 'Z',
+                // 英文字母（小写）
+                'ａ': 'a', 'ｂ': 'b', 'ｃ': 'c', 'ｄ': 'd', 'ｅ': 'e', 'ｆ': 'f', 'ｇ': 'g',
+                'ｈ': 'h', 'ｉ': 'i', 'ｊ': 'j', 'ｋ': 'k', 'ｌ': 'l', 'ｍ': 'm', 'ｎ': 'n',
+                'ｏ': 'o', 'ｐ': 'p', 'ｑ': 'q', 'ｒ': 'r', 'ｓ': 's', 'ｔ': 't', 'ｕ': 'u',
+                'ｖ': 'v', 'ｗ': 'w', 'ｘ': 'x', 'ｙ': 'y', 'ｚ': 'z',
+                // 符号
+                '！': '!', '＂': '"', '＃': '#', '＄': '$', '％': '%', '＆': '&', '＇': "'",
+                '（': '(', '）': ')', '＊': '*', '＋': '+', '，': ',', '－': '-', '．': '.',
+                '／': '/', '：': ':', '；': ';', '＜': '<', '＝': '=', '＞': '>', '？': '?',
+                '＠': '@', '［': '[', '＼': '\\', '］': ']', '＾': '^', '＿': '_', '｀': '`',
+                '｛': '{', '｜': '|', '｝': '}', '～': '~',
+                // 日文特殊符号
+                '　': ' ',  // 全角空格
+                '。': '.',
+                '、': ',',
+                '「': '[',
+                '」': ']',
+                '『': '{',
+                '』': '}',
+                '【': '[',
+                '】': ']',
+                '・': '/',
+                '：': ':',
+                '；': ';',
+                '？': '?',
+                '！': '!',
+                '（': '(',
+                '）': ')',
+                '｛': '{',
+                '｝': '}',
+                '＋': '+',
+                '－': '-',
+                '＝': '=',
+                '￥': '\\',
+                '＄': '$',
+                '％': '%',
+                '＃': '#',
+                '＆': '&',
+                '＊': '*',
+                '＠': '@',
+                '。': '.'
+            };
+
+            // 片假名全角到半角的映射
+            fullToHalfMap['ア'] = 'ｱ'; fullToHalfMap['イ'] = 'ｲ'; fullToHalfMap['ウ'] = 'ｳ'; fullToHalfMap['エ'] = 'ｴ'; fullToHalfMap['オ'] = 'ｵ';
+            fullToHalfMap['カ'] = 'ｶ'; fullToHalfMap['キ'] = 'ｷ'; fullToHalfMap['ク'] = 'ｸ'; fullToHalfMap['ケ'] = 'ｹ'; fullToHalfMap['コ'] = 'ｺ';
+            fullToHalfMap['サ'] = 'ｻ'; fullToHalfMap['シ'] = 'ｼ'; fullToHalfMap['ス'] = 'ｽ'; fullToHalfMap['セ'] = 'ｾ'; fullToHalfMap['ソ'] = 'ｿ';
+            fullToHalfMap['タ'] = 'ﾀ'; fullToHalfMap['チ'] = 'ﾁ'; fullToHalfMap['ツ'] = 'ﾂ'; fullToHalfMap['テ'] = 'ﾃ'; fullToHalfMap['ト'] = 'ﾄ';
+            fullToHalfMap['ナ'] = 'ﾅ'; fullToHalfMap['ニ'] = 'ﾆ'; fullToHalfMap['ヌ'] = 'ﾇ'; fullToHalfMap['ネ'] = 'ﾈ'; fullToHalfMap['ノ'] = 'ﾉ';
+            fullToHalfMap['ハ'] = 'ﾊ'; fullToHalfMap['ヒ'] = 'ﾋ'; fullToHalfMap['フ'] = 'ﾌ'; fullToHalfMap['ヘ'] = 'ﾍ'; fullToHalfMap['ホ'] = 'ﾎ';
+            fullToHalfMap['マ'] = 'ﾏ'; fullToHalfMap['ミ'] = 'ﾐ'; fullToHalfMap['ム'] = 'ﾑ'; fullToHalfMap['メ'] = 'ﾒ'; fullToHalfMap['モ'] = 'ﾓ';
+            fullToHalfMap['ヤ'] = 'ﾔ'; fullToHalfMap['ユ'] = 'ﾕ'; fullToHalfMap['ヨ'] = 'ﾖ';
+            fullToHalfMap['ラ'] = 'ﾗ'; fullToHalfMap['リ'] = 'ﾘ'; fullToHalfMap['ル'] = 'ﾙ'; fullToHalfMap['レ'] = 'ﾚ'; fullToHalfMap['ロ'] = 'ﾛ';
+            fullToHalfMap['ワ'] = 'ﾜ'; fullToHalfMap['ヲ'] = 'ｦ'; fullToHalfMap['ン'] = 'ﾝ';
+            fullToHalfMap['ガ'] = 'ｶﾞ'; fullToHalfMap['ギ'] = 'ｷﾞ'; fullToHalfMap['グ'] = 'ｸﾞ'; fullToHalfMap['ゲ'] = 'ｹﾞ'; fullToHalfMap['ゴ'] = 'ｺﾞ';
+            fullToHalfMap['ザ'] = 'ｻﾞ'; fullToHalfMap['ジ'] = 'ｼﾞ'; fullToHalfMap['ズ'] = 'ｽﾞ'; fullToHalfMap['ゼ'] = 'ｾﾞ'; fullToHalfMap['ゾ'] = 'ｿﾞ';
+            fullToHalfMap['ダ'] = 'ﾀﾞ'; fullToHalfMap['ヂ'] = 'ﾁﾞ'; fullToHalfMap['ヅ'] = 'ﾂﾞ'; fullToHalfMap['デ'] = 'ﾃﾞ'; fullToHalfMap['ド'] = 'ﾄﾞ';
+            fullToHalfMap['バ'] = 'ﾊﾞ'; fullToHalfMap['ビ'] = 'ﾋﾞ'; fullToHalfMap['ブ'] = 'ﾌﾞ'; fullToHalfMap['ベ'] = 'ﾍﾞ'; fullToHalfMap['ボ'] = 'ﾎﾞ';
+            fullToHalfMap['パ'] = 'ﾊﾟ'; fullToHalfMap['ピ'] = 'ﾋﾟ'; fullToHalfMap['プ'] = 'ﾌﾟ'; fullToHalfMap['ペ'] = 'ﾍﾟ'; fullToHalfMap['ポ'] = 'ﾎﾟ';
+            fullToHalfMap['ヴ'] = 'ｳﾞ';
+            fullToHalfMap['ッ'] = 'ｯ';
+            fullToHalfMap['ャ'] = 'ｬ'; fullToHalfMap['ュ'] = 'ｭ'; fullToHalfMap['ョ'] = 'ｮ';
+            fullToHalfMap['ァ'] = 'ｧ'; fullToHalfMap['ィ'] = 'ｨ'; fullToHalfMap['ゥ'] = 'ｩ'; fullToHalfMap['ェ'] = 'ｪ'; fullToHalfMap['ォ'] = 'ｫ';
+
+            // 平假名转片假名（半角）
+            fullToHalfMap['あ'] = 'ｱ'; fullToHalfMap['い'] = 'ｲ'; fullToHalfMap['う'] = 'ｳ'; fullToHalfMap['え'] = 'ｴ'; fullToHalfMap['お'] = 'ｵ';
+            fullToHalfMap['か'] = 'ｶ'; fullToHalfMap['き'] = 'ｷ'; fullToHalfMap['く'] = 'ｸ'; fullToHalfMap['け'] = 'ｹ'; fullToHalfMap['こ'] = 'ｺ';
+            fullToHalfMap['さ'] = 'ｻ'; fullToHalfMap['し'] = 'ｼ'; fullToHalfMap['す'] = 'ｽ'; fullToHalfMap['せ'] = 'ｾ'; fullToHalfMap['そ'] = 'ｿ';
+            fullToHalfMap['た'] = 'ﾀ'; fullToHalfMap['ち'] = 'ﾁ'; fullToHalfMap['つ'] = 'ﾂ'; fullToHalfMap['て'] = 'ﾃ'; fullToHalfMap['と'] = 'ﾄ';
+            fullToHalfMap['な'] = 'ﾅ'; fullToHalfMap['に'] = 'ﾆ'; fullToHalfMap['ぬ'] = 'ﾇ'; fullToHalfMap['ね'] = 'ﾈ'; fullToHalfMap['の'] = 'ﾉ';
+            fullToHalfMap['は'] = 'ﾊ'; fullToHalfMap['ひ'] = 'ﾋ'; fullToHalfMap['ふ'] = 'ﾌ'; fullToHalfMap['へ'] = 'ﾍ'; fullToHalfMap['ほ'] = 'ﾎ';
+            fullToHalfMap['ま'] = 'ﾏ'; fullToHalfMap['み'] = 'ﾐ'; fullToHalfMap['む'] = 'ﾑ'; fullToHalfMap['め'] = 'ﾒ'; fullToHalfMap['も'] = 'ﾓ';
+            fullToHalfMap['や'] = 'ﾔ'; fullToHalfMap['ゆ'] = 'ﾕ'; fullToHalfMap['よ'] = 'ﾖ';
+            fullToHalfMap['ら'] = 'ﾗ'; fullToHalfMap['り'] = 'ﾘ'; fullToHalfMap['る'] = 'ﾙ'; fullToHalfMap['れ'] = 'ﾚ'; fullToHalfMap['ろ'] = 'ﾛ';
+            fullToHalfMap['わ'] = 'ﾜ'; fullToHalfMap['を'] = 'ｦ'; fullToHalfMap['ん'] = 'ﾝ';
+            fullToHalfMap['が'] = 'ｶﾞ'; fullToHalfMap['ぎ'] = 'ｷﾞ'; fullToHalfMap['ぐ'] = 'ｸﾞ'; fullToHalfMap['げ'] = 'ｹﾞ'; fullToHalfMap['ご'] = 'ｺﾞ';
+            fullToHalfMap['ざ'] = 'ｻﾞ'; fullToHalfMap['じ'] = 'ｼﾞ'; fullToHalfMap['ず'] = 'ｽﾞ'; fullToHalfMap['ぜ'] = 'ｾﾞ'; fullToHalfMap['ぞ'] = 'ｿﾞ';
+            fullToHalfMap['だ'] = 'ﾀﾞ'; fullToHalfMap['ぢ'] = 'ﾁﾞ'; fullToHalfMap['づ'] = 'ﾂﾞ'; fullToHalfMap['で'] = 'ﾃﾞ'; fullToHalfMap['ど'] = 'ﾄﾞ';
+            fullToHalfMap['ば'] = 'ﾊﾞ'; fullToHalfMap['び'] = 'ﾋﾞ'; fullToHalfMap['ぶ'] = 'ﾌﾞ'; fullToHalfMap['べ'] = 'ﾍﾞ'; fullToHalfMap['ぼ'] = 'ﾎﾞ';
+            fullToHalfMap['ぱ'] = 'ﾊﾟ'; fullToHalfMap['ぴ'] = 'ﾋﾟ'; fullToHalfMap['ぷ'] = 'ﾌﾟ'; fullToHalfMap['ぺ'] = 'ﾍﾟ'; fullToHalfMap['ぽ'] = 'ﾎﾟ';
+            fullToHalfMap['っ'] = 'ｯ';
+            fullToHalfMap['ゃ'] = 'ｬ'; fullToHalfMap['ゅ'] = 'ｭ'; fullToHalfMap['ょ'] = 'ｮ';
+            fullToHalfMap['ぁ'] = 'ｧ'; fullToHalfMap['ぃ'] = 'ｨ'; fullToHalfMap['ぅ'] = 'ｩ'; fullToHalfMap['ぇ'] = 'ｪ'; fullToHalfMap['ぉ'] = 'ｫ';
+
+            // 使用映射表进行转换
+            let result = input;
+            for (let fullWidth in fullToHalfMap) {
+                result = result.split(fullWidth).join(fullToHalfMap[fullWidth]);
+            }
+            
+            output.value = result;
+        }
+
+        function clearText() {
+            document.getElementById('input').value = '';
+            document.getElementById('output').value = '';
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            output.select();
+            document.execCommand('copy');
+            
+            // 显示复制成功的提示
+            const originalText = event.target.textContent;
+            event.target.textContent = '已复制！';
+            setTimeout(() => {
+                event.target.textContent = originalText;
+            }, 1500);
+        }
+
+        // 添加键盘快捷键支持
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                convert();
+            }
+        });
+
+        // 标签页切换
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab, .tab-content').forEach(el => {
+                    el.classList.remove('active');
+                });
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // 定义模板数据
+        const templates = {
+            'default': `■機種名: 
+■現象: 
+■CIDAR: 
+■切り分け: 他不具合なし
+
+I: 
+
+■RAID構成情報: 
+
+OS: 
+
+C:修理免責全て了承済 
+C:HDD交換/OSｲﾝｽﾄｰﾙ了承済み。 
+C:HDD交換/OSｲﾝｽﾄｰﾙ必要な際はRHOLD連絡必要 
+C:ﾛｸﾞｲﾝPW/HDD/BIOS_PSWD、BitLocker設定なし 
+C:OS再ｲﾝｽﾄｰﾙ時ﾕｰｻﾞｰ名：　　設定願います`,
+
+            'hdd_replace': `■機種名: 
+■現象: HDD不良
+■切り分け: 
+1.HDDｾﾙﾌﾃｽﾄ実施→NG
+2.他不具合なし
+
+■HDD情報:
+容量: 
+S/N: 
+
+C:修理免責全て了承済 
+C:HDD交換/OSｲﾝｽﾄｰﾙ了承済み。
+C:ﾛｸﾞｲﾝPW/HDD/BIOS_PSWD、BitLocker設定なし`,
+
+            'memory_test': `■機種名: 
+■現象: ﾒﾓﾘ不良の疑い
+■切り分け: 
+1.ﾒﾓﾘﾃｽﾄ実施→NG
+2.他不具合なし
+
+■搭載ﾒﾓﾘ: 
+容量: 
+種類: 
+
+C:修理免責全て了承済`,
+
+            'battery_replace': `■機種名: 
+■現象: ﾊﾞｯﾃﾘ充電できない
+■切り分け: 
+1.ﾊﾞｯﾃﾘｾﾙﾌﾃｽﾄ実施→NG
+2.他不具合なし
+
+■ﾊﾞｯﾃﾘ情報:
+型番: 
+製造日: 
+
+C:修理免責全て了承済`
+        };
+
+        // 模板选择功能
+        document.getElementById('templateSelect').addEventListener('change', function() {
+            document.getElementById('templateEditor').value = templates[this.value] || '';
+        });
+
+        // 复制模板功能
+        function copyTemplate() {
+            const editor = document.getElementById('templateEditor');
+            editor.select();
+            document.execCommand('copy');
+            
+            // 添加复制成功的视觉反馈
+            const copyBtn = document.querySelector('.btn-ripple');
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = '已复制！';
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+            }, 1500);
+        }
+
+        // 清空模板功能
+        function clearTemplate() {
+            document.getElementById('templateEditor').value = '';
+        }
+    </script>
+</body>
+</html> 
